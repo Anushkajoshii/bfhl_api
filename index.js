@@ -4,36 +4,30 @@ const app = express();
 app.use(express.json());
 
 app.post('/bfhl', (req, res) => {
-    try {
-        const data = req.body.data;
-        if (!Array.isArray(data)) {
-            throw new Error("Invalid input format. 'data' should be an array.");
-        }
+    const data = req.body.data;
 
-        const numbers = data.filter(item => !isNaN(item));
-        const alphabets = data.filter(item => /^[a-zA-Z]$/.test(item));
-        const lowercaseAlphabets = alphabets.filter(item => item === item.toLowerCase());
-
-        const highestLowercaseAlphabet = lowercaseAlphabets.length > 0 
-            ? lowercaseAlphabets.sort().slice(-1)
-            : null;
-
-        res.json({
-            is_success: true,
-            user_id: "john_doe_17091999",
-            email: "john@xyz.com",
-            roll_number: "ABCD123",
-            numbers: numbers,
-            alphabets: alphabets,
-            highest_lowercase_alphabet: highestLowercaseAlphabet ? [highestLowercaseAlphabet] : []
-        });
-    } catch (error) {
-        res.json({
-            is_success: false,
-            message: error.message
-        });
+    if (!Array.isArray(data)) {
+        return res.status(400).json({ is_success: false, message: 'Invalid data format' });
     }
+
+    const numbers = data.filter(item => !isNaN(item));
+    const alphabets = data.filter(item => isNaN(item) && item.match(/[a-zA-Z]/));
+    const lowercaseAlphabets = alphabets.filter(item => item === item.toLowerCase());
+    const highestLowercaseAlphabet = lowercaseAlphabets.length > 0
+        ? [String.fromCharCode(Math.max(...lowercaseAlphabets.map(item => item.charCodeAt(0))))]
+        : [];
+
+    res.json({
+        is_success: true,
+        user_id: "john_doe_17091999",
+        email: "john@xyz.com",
+        roll_number: "ABCD123",
+        numbers: numbers,
+        alphabets: alphabets,
+        highest_lowercase_alphabet: highestLowercaseAlphabet
+    });
 });
+
 
 app.get('/bfhl', (req, res) => {
     res.status(200).json({
